@@ -1,6 +1,8 @@
 package dto
 
 type CreateCategoryProductReq struct {
-	ID   string `json:"id"`
-	Name string `validate:"required" json:"name"`
+	Name string `validate:"required,min=1,max=100" json:"name"`
+}
+type UpdateCategoryProductReq struct {
+	Name string `validate:"required,min=1,max=100" json:"name"`
 }

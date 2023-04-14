@@ -1,4 +1,4 @@
-module github.com/SyaibanAhmadRamadhan/toko-bangunan
+module toko-bangunan
 
 go 1.20
 
