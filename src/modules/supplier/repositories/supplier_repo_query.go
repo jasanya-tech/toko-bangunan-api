@@ -46,7 +46,7 @@ func (repository *SupplierRepositoryQueryImpl) FindById(ctx context.Context, db 
 	var supplier entities.Supplier
 	if row.Next() {
 		if err := row.Scan(&supplier.ID, &supplier.Name, &supplier.Email, &supplier.Phone, &supplier.Address, &supplier.CreatedAt, &supplier.UpdatedAt); err != nil {
-			panic(err)
+			return nil, err
 		}
 		return &supplier, nil
 	}

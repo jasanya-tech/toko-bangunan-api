@@ -1,4 +1,4 @@
-package fileupload
+package middleware
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"toko-bangunan/internal/protocols/http/exception"
-	"toko-bangunan/internal/utils/file-upload/validasi"
+	"toko-bangunan/internal/utils/validasi"
 
 	"github.com/gofiber/fiber/v2"
 )

@@ -16,10 +16,8 @@ func (http *HttpHandlerImpl) FindAllProduct(c *fiber.Ctx) error {
 }
 
 func (http *HttpHandlerImpl) FindByIdProduct(c *fiber.Ctx) error {
-	product, err := http.ProductService.FindById(c.Context(), c.Params("id"))
-	if err != nil {
-		panic(err)
-	}
+	product := http.ProductService.FindById(c.Context(), c.Params("id"))
+
 	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "data product", product))
 }
 
@@ -36,10 +34,8 @@ func (http *HttpHandlerImpl) CreateProduct(c *fiber.Ctx) error {
 	}
 	product.Image = fileImg.(string)
 
-	productService, err := http.ProductService.Create(c.Context(), *product)
-	if err != nil {
-		panic(err)
-	}
+	productService := http.ProductService.Create(c.Context(), *product)
+
 	file, _ := c.FormFile("image")
 	if file != nil {
 		if err := c.SaveFile(file, fmt.Sprintf("%s/%s", "./public/images/product-img", fileImg)); err != nil {
@@ -58,10 +54,7 @@ func (http *HttpHandlerImpl) UpdateProduct(c *fiber.Ctx) error {
 	fileImg := c.Locals("filename")
 	product.Image = fileImg.(string)
 
-	productService, err := http.ProductService.Update(c.Context(), *product, c.Params("id"))
-	if err != nil {
-		panic(err)
-	}
+	productService := http.ProductService.Update(c.Context(), *product, c.Params("id"))
 
 	file, _ := c.FormFile("image")
 	if file != nil {
@@ -74,9 +67,7 @@ func (http *HttpHandlerImpl) UpdateProduct(c *fiber.Ctx) error {
 }
 
 func (http *HttpHandlerImpl) DeleteProduct(c *fiber.Ctx) error {
-	err := http.ProductService.Delete(c.Context(), c.Params("id"))
-	if err != nil {
-		panic(err)
-	}
+	http.ProductService.Delete(c.Context(), c.Params("id"))
+
 	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "delete product successfully", nil))
 }

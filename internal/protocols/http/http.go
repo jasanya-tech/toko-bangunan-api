@@ -32,7 +32,7 @@ func (p HttpImpl) Listen() {
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "http://localhost:3000",
-		AllowHeaders:     "Origin, Content-Type, Accept",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, id",
 		AllowMethods:     "GET, POST, PUT, DELETE",
 		AllowCredentials: true,
 	}))
@@ -40,7 +40,7 @@ func (p HttpImpl) Listen() {
 	p.handlers.Router(app)
 
 	serverPort := fmt.Sprintf(":%s", config.Get().Application.Port)
-	_ = app.Listen(":0")
+	_ = app.Listen(serverPort)
 	// if err != nil {
 	// 	panic(err)
 	// }

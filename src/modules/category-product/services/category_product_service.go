@@ -16,10 +16,10 @@ import (
 
 type CategoryProductService interface {
 	FindALL(ctx context.Context) *[]dto.CategoryProductRes
-	FindById(ctx context.Context, id string) (*dto.CategoryProductRes, error)
-	Create(ctx context.Context, request dto.CreateCategoryProductReq) (*dto.CategoryProductRes, error)
-	Update(ctx context.Context, request dto.UpdateCategoryProductReq, id string) (*dto.CategoryProductRes, error)
-	Delete(ctx context.Context, id string) error
+	FindById(ctx context.Context, id string) *dto.CategoryProductRes
+	Create(ctx context.Context, request dto.CreateCategoryProductReq) *dto.CategoryProductRes
+	Update(ctx context.Context, request dto.UpdateCategoryProductReq, id string) *dto.CategoryProductRes
+	Delete(ctx context.Context, id string)
 }
 
 type CategoryProductServiceImpl struct {
@@ -37,39 +37,30 @@ func (service *CategoryProductServiceImpl) FindALL(ctx context.Context) *[]dto.C
 	var categoryProductResponses []dto.CategoryProductRes
 
 	for _, categoryProduct := range *categoryProducts {
-		categoryProductResponse := dto.CategoryProductRes{
-			ID:        categoryProduct.ID,
-			Name:      categoryProduct.Name,
-			CreatedAt: categoryProduct.CreatedAt,
-			UpdatedAt: categoryProduct.UpdatedAt,
-		}
+		categoryProductResponse := dto.EntitiesToResponse(categoryProduct)
 		categoryProductResponses = append(categoryProductResponses, categoryProductResponse)
 	}
 	return &categoryProductResponses
 }
 
-func (service *CategoryProductServiceImpl) FindById(ctx context.Context, id string) (*dto.CategoryProductRes, error) {
+func (service *CategoryProductServiceImpl) FindById(ctx context.Context, id string) *dto.CategoryProductRes {
 	categoryProduct, err := service.CategoryProductRepo.FindById(ctx, service.DB, id)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	var categoryProductResponse dto.CategoryProductRes
 
-	categoryProductResponse.ID = categoryProduct.ID
-	categoryProductResponse.Name = categoryProduct.Name
-	categoryProductResponse.CreatedAt = categoryProduct.CreatedAt
-	categoryProductResponse.UpdatedAt = categoryProduct.UpdatedAt
-	return &categoryProductResponse, nil
+	categoryProductResponse := dto.EntitiesToResponse(*categoryProduct)
+	return &categoryProductResponse
 }
 
-func (service *CategoryProductServiceImpl) Create(ctx context.Context, request dto.CreateCategoryProductReq) (*dto.CategoryProductRes, error) {
+func (service *CategoryProductServiceImpl) Create(ctx context.Context, request dto.CreateCategoryProductReq) *dto.CategoryProductRes {
 	errValidate := service.Validate.Struct(request)
 	if errValidate != nil {
 		panic(errValidate)
 	}
 	tx, err := service.DB.Begin()
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	defer transaction.Transaction(tx)
 
@@ -79,21 +70,16 @@ func (service *CategoryProductServiceImpl) Create(ctx context.Context, request d
 		CreatedAt: time.Now().Unix(),
 		UpdatedAt: time.Now().Unix(),
 	}
-	categoryProduct, err = service.CategoryProductRepo.Create(ctx, tx, categoryProduct)
+	categoryProductCreate, err := service.CategoryProductRepo.Create(ctx, tx, categoryProduct)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	categoryProductRes := dto.CategoryProductRes{
-		ID:        categoryProduct.ID,
-		Name:      categoryProduct.Name,
-		CreatedAt: categoryProduct.CreatedAt,
-		UpdatedAt: categoryProduct.UpdatedAt,
-	}
-	return &categoryProductRes, nil
+	categoryProductResponse := dto.EntitiesToResponse(*categoryProductCreate)
+	return &categoryProductResponse
 }
 
-func (service *CategoryProductServiceImpl) Update(ctx context.Context, request dto.UpdateCategoryProductReq, id string) (*dto.CategoryProductRes, error) {
+func (service *CategoryProductServiceImpl) Update(ctx context.Context, request dto.UpdateCategoryProductReq, id string) *dto.CategoryProductRes {
 	errValidate := service.Validate.Struct(request)
 	if errValidate != nil {
 		panic(errValidate)
@@ -106,7 +92,7 @@ func (service *CategoryProductServiceImpl) Update(ctx context.Context, request d
 
 	categoryProductFind, err := service.CategoryProductRepo.FindById(ctx, service.DB, id)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	categoryProduct := &entities.CategoryProduct{
 		ID:        categoryProductFind.ID,
@@ -114,29 +100,23 @@ func (service *CategoryProductServiceImpl) Update(ctx context.Context, request d
 		CreatedAt: categoryProductFind.CreatedAt,
 		UpdatedAt: time.Now().Unix(),
 	}
-	categoryProduct, err = service.CategoryProductRepo.Update(ctx, tx, categoryProduct)
+	categoryProductUpdate, err := service.CategoryProductRepo.Update(ctx, tx, categoryProduct)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	categoryProductRes := dto.CategoryProductRes{
-		ID:        id,
-		Name:      categoryProduct.Name,
-		CreatedAt: categoryProduct.CreatedAt,
-		UpdatedAt: categoryProduct.UpdatedAt,
-	}
-	return &categoryProductRes, nil
+	categoryProductResponse := dto.EntitiesToResponse(*categoryProductUpdate)
+	return &categoryProductResponse
 }
 
-func (service *CategoryProductServiceImpl) Delete(ctx context.Context, id string) error {
+func (service *CategoryProductServiceImpl) Delete(ctx context.Context, id string) {
 	tx, err := service.DB.Begin()
 	if err != nil {
-		return err
+		panic(err)
 	}
 	defer transaction.Transaction(tx)
 
 	if err := service.CategoryProductRepo.Delete(ctx, tx, id); err != nil {
-		return err
+		panic(err)
 	}
-	return nil
 }

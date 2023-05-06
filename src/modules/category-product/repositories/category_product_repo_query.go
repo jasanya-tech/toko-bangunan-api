@@ -39,14 +39,14 @@ func (repository *CategoryProductRepositoryQueryImpl) FindById(ctx context.Conte
 	SQL := "SELECT id, name, created_at, updated_at FROM product_categories WHERE id=? LIMIT 1"
 	row, err := db.QueryContext(ctx, SQL, id)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer row.Close()
 
 	if row.Next() {
 		var categoryProduct entities.CategoryProduct
 		if err := row.Scan(&categoryProduct.ID, &categoryProduct.Name, &categoryProduct.CreatedAt, &categoryProduct.UpdatedAt); err != nil {
-			panic(err)
+			return nil, err
 		}
 		return &categoryProduct, nil
 	}

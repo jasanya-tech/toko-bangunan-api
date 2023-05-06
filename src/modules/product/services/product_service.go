@@ -9,14 +9,10 @@ import (
 
 	"toko-bangunan/infrastructures/db/transaction"
 	"toko-bangunan/internal/utils/format"
-	categoryproductdto "toko-bangunan/src/modules/category-product/dto"
-	categoryproductentity "toko-bangunan/src/modules/category-product/entities"
 	categoryproductrepo "toko-bangunan/src/modules/category-product/repositories"
 	"toko-bangunan/src/modules/product/dto"
 	productentity "toko-bangunan/src/modules/product/entities"
 	productrepo "toko-bangunan/src/modules/product/repositories"
-	supplierdto "toko-bangunan/src/modules/supplier/dto"
-	supplierentity "toko-bangunan/src/modules/supplier/entities"
 	supplierrepo "toko-bangunan/src/modules/supplier/repositories"
 
 	"github.com/go-playground/validator/v10"
@@ -24,10 +20,10 @@ import (
 
 type ProductService interface {
 	FindALL(ctx context.Context) *[]dto.ProductRes
-	FindById(ctx context.Context, id string) (*dto.ProductRes, error)
-	Create(ctx context.Context, request dto.CreateProductReq) (*dto.ProductRes, error)
-	Update(ctx context.Context, request dto.UpdateProductReq, id string) (*dto.ProductRes, error)
-	Delete(ctx context.Context, id string) error
+	FindById(ctx context.Context, id string) *dto.ProductRes
+	Create(ctx context.Context, request dto.CreateProductReq) *dto.ProductRes
+	Update(ctx context.Context, request dto.UpdateProductReq, id string) *dto.ProductRes
+	Delete(ctx context.Context, id string)
 }
 
 type ProductServiceImpl struct {
@@ -59,187 +55,129 @@ func (service *ProductServiceImpl) FindALL(ctx context.Context) *[]dto.ProductRe
 	var productResponses []dto.ProductRes
 
 	for _, product := range *products {
-		productResponse := dto.ProductRes{
-			ID:              product.ID,
-			Name:            product.Name,
-			SellingPrice:    product.SellingPrice,
-			PurchasePrice:   product.PurchasePrice,
-			StockProduct:    product.StockProduct,
-			Image:           product.Image,
-			CreatedAt:       product.CreatedAt,
-			UpdatedAt:       product.UpdatedAt,
-			Supplier:        supplierdto.SupplierRes(product.Supplier),
-			ProductCategory: categoryproductdto.CategoryProductRes(product.ProductCategory),
-		}
+		productResponse := dto.EntitiesToResponse(product)
 		productResponses = append(productResponses, productResponse)
 	}
+
 	return &productResponses
 }
 
-func (service *ProductServiceImpl) FindById(ctx context.Context, id string) (*dto.ProductRes, error) {
+func (service *ProductServiceImpl) FindById(ctx context.Context, id string) *dto.ProductRes {
 	product, err := service.ProductRepository.FindById(ctx, service.DB, id)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	productResponse := &dto.ProductRes{
-		ID:              product.ID,
-		Name:            product.Name,
-		SellingPrice:    product.SellingPrice,
-		PurchasePrice:   product.PurchasePrice,
-		StockProduct:    product.StockProduct,
-		Image:           product.Image,
-		CreatedAt:       product.CreatedAt,
-		UpdatedAt:       product.UpdatedAt,
-		Supplier:        supplierdto.SupplierRes(product.Supplier),
-		ProductCategory: categoryproductdto.CategoryProductRes(product.ProductCategory),
-	}
+	productResponse := dto.EntitiesToResponse(*product)
 
-	return productResponse, nil
+	return &productResponse
 }
 
-func (service *ProductServiceImpl) Create(ctx context.Context, request dto.CreateProductReq) (*dto.ProductRes, error) {
+func (service *ProductServiceImpl) Create(ctx context.Context, request dto.CreateProductReq) *dto.ProductRes {
 	errValidate := service.Validate.Struct(request)
 	if errValidate != nil {
-		return nil, errValidate
+		panic(errValidate)
 	}
 	tx, err := service.DB.Begin()
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	defer transaction.Transaction(tx)
 
 	findSupplier, err := service.SupplierRepository.FindById(ctx, service.DB, request.SupplierId)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	findCategoryProduct, err := service.CategoryProductRepository.FindById(ctx, service.DB, request.ProductCategoryId)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	productEntity := &productentity.Product{
-		ID:              format.NewItemID("PRD", time.Now()).String(),
-		Supplier:        supplierentity.Supplier(*findSupplier),
-		ProductCategory: categoryproductentity.CategoryProduct(*findCategoryProduct),
-		SellingPrice:    request.SellingPrice,
-		PurchasePrice:   request.PurchasePrice,
-		StockProduct:    request.StockProduct,
-		Image:           request.Image,
-		Name:            request.Name,
-		CreatedAt:       time.Now().Unix(),
-		UpdatedAt:       time.Now().Unix(),
+		ID:                format.NewItemID("PRD", time.Now()).String(),
+		SupplierId:        findSupplier.ID,
+		ProductCategoryId: findCategoryProduct.ID,
+		SellingPrice:      request.SellingPrice,
+		Image:             request.Image,
+		Name:              request.Name,
+		CreatedAt:         time.Now().Unix(),
+		UpdatedAt:         time.Now().Unix(),
 	}
 
 	productEntity, err = service.ProductRepository.Create(ctx, tx, productEntity)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	productRespon := &dto.ProductRes{
-		ID:              productEntity.ID,
-		Supplier:        supplierdto.SupplierRes(productEntity.Supplier),
-		ProductCategory: categoryproductdto.CategoryProductRes(productEntity.ProductCategory),
-		Name:            productEntity.Name,
-		SellingPrice:    productEntity.SellingPrice,
-		PurchasePrice:   productEntity.PurchasePrice,
-		StockProduct:    productEntity.StockProduct,
-		Image:           productEntity.Image,
-		CreatedAt:       productEntity.CreatedAt,
-		UpdatedAt:       productEntity.UpdatedAt,
-	}
-	return productRespon, nil
+	productResponse := dto.EntitiesToResponse(*productEntity)
+	return &productResponse
 }
 
-func (service *ProductServiceImpl) Update(ctx context.Context, request dto.UpdateProductReq, id string) (*dto.ProductRes, error) {
+func (service *ProductServiceImpl) Update(ctx context.Context, request dto.UpdateProductReq, id string) *dto.ProductRes {
 	errValidate := service.Validate.Struct(request)
 	if errValidate != nil {
-		return nil, errValidate
+		panic(errValidate)
 	}
 	tx, err := service.DB.Begin()
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	defer transaction.Transaction(tx)
 
 	productFind, err := service.ProductRepository.FindById(ctx, service.DB, id)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	findSupplier, err := service.SupplierRepository.FindById(ctx, service.DB, request.SupplierId)
+	_, err = service.SupplierRepository.FindById(ctx, service.DB, request.SupplierId)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	findCategoryProduct, err := service.CategoryProductRepository.FindById(ctx, service.DB, request.ProductCategoryId)
+	_, err = service.CategoryProductRepository.FindById(ctx, service.DB, request.ProductCategoryId)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	product := &productentity.Product{
-		ID:            productFind.ID,
-		Name:          request.Name,
-		SellingPrice:  request.SellingPrice,
-		PurchasePrice: request.PurchasePrice,
-		StockProduct:  request.StockProduct,
-		Image:         request.Image,
-		CreatedAt:     productFind.CreatedAt,
-		UpdatedAt:     time.Now().Unix(),
-		Supplier: supplierentity.Supplier{
-			ID:        request.SupplierId,
-			Name:      findSupplier.Name,
-			Email:     findSupplier.Email,
-			Phone:     findSupplier.Phone,
-			Address:   findSupplier.Address,
-			CreatedAt: findSupplier.CreatedAt,
-			UpdatedAt: findSupplier.UpdatedAt,
-		},
-		ProductCategory: categoryproductentity.CategoryProduct{
-			ID:        request.ProductCategoryId,
-			Name:      findCategoryProduct.Name,
-			CreatedAt: findCategoryProduct.CreatedAt,
-			UpdatedAt: findCategoryProduct.UpdatedAt,
-		},
+		ID:                productFind.ID,
+		SupplierId:        request.SupplierId,
+		ProductCategoryId: request.ProductCategoryId,
+		Name:              request.Name,
+		SellingPrice:      request.SellingPrice,
+		CreatedAt:         productFind.CreatedAt,
+		UpdatedAt:         time.Now().Unix(),
 	}
 	if request.Image != "" {
-		os.Remove(fmt.Sprintf("./public/images/product-img/%s", productFind.Image))
+		product.Image = request.Image
 	} else {
 		product.Image = productFind.Image
 	}
 
 	product, err = service.ProductRepository.Update(ctx, tx, product)
 	if err != nil {
-		return nil, err
+		panic(product)
 	}
 
-	productResponse := &dto.ProductRes{
-		ID:              product.ID,
-		Name:            product.Name,
-		SellingPrice:    product.SellingPrice,
-		PurchasePrice:   product.PurchasePrice,
-		StockProduct:    product.StockProduct,
-		Image:           product.Image,
-		CreatedAt:       product.CreatedAt,
-		UpdatedAt:       product.UpdatedAt,
-		Supplier:        supplierdto.SupplierRes(product.Supplier),
-		ProductCategory: categoryproductdto.CategoryProductRes(product.ProductCategory),
+	if request.Image != "" {
+		os.Remove(fmt.Sprintf("./public/images/product-img/%s", productFind.Image))
 	}
-	return productResponse, nil
+
+	productResponse := dto.EntitiesToResponse(*product)
+	return &productResponse
 }
 
-func (service *ProductServiceImpl) Delete(ctx context.Context, id string) error {
+func (service *ProductServiceImpl) Delete(ctx context.Context, id string) {
 	tx, err := service.DB.Begin()
 	if err != nil {
-		return err
+		panic(err)
 	}
 	defer transaction.Transaction(tx)
 	productFind, err := service.ProductRepository.FindById(ctx, service.DB, id)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	os.Remove(fmt.Sprintf("./public/images/product-img/%s", productFind.Image))
 
 	service.ProductRepository.Delete(ctx, tx, productFind.ID)
-	return nil
 }

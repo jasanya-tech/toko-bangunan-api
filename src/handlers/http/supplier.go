@@ -13,10 +13,8 @@ func (http *HttpHandlerImpl) FindAllSupplier(c *fiber.Ctx) error {
 }
 
 func (http *HttpHandlerImpl) FindByIdSupplier(c *fiber.Ctx) error {
-	supplier, err := http.SupplierService.FindById(c.Context(), c.Params("id"))
-	if err != nil {
-		panic(err)
-	}
+	supplier := http.SupplierService.FindById(c.Context(), c.Params("id"))
+
 	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "data supplier", supplier))
 }
 
@@ -27,10 +25,8 @@ func (http *HttpHandlerImpl) CreateSupplier(c *fiber.Ctx) error {
 		panic(err)
 	}
 
-	supplierSercice, err := http.SupplierService.Create(c.Context(), *supplier)
-	if err != nil {
-		panic(err)
-	}
+	supplierSercice := http.SupplierService.Create(c.Context(), *supplier)
+
 	return c.Status(fiber.StatusCreated).JSON(response.NewResponse("ok", fiber.StatusCreated, "created supplier successfully", supplierSercice))
 }
 
@@ -39,17 +35,13 @@ func (http *HttpHandlerImpl) UpdateSupplier(c *fiber.Ctx) error {
 	if err := c.BodyParser(supplier); err != nil {
 		panic(err)
 	}
-	supplierSercice, err := http.SupplierService.Update(c.Context(), *supplier, c.Params("id"))
-	if err != nil {
-		panic(err)
-	}
+	supplierSercice := http.SupplierService.Update(c.Context(), *supplier, c.Params("id"))
+
 	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "update supplier successfully", supplierSercice))
 }
 
 func (http *HttpHandlerImpl) DeleteSupplier(c *fiber.Ctx) error {
-	err := http.SupplierService.Delete(c.Context(), c.Params("id"))
-	if err != nil {
-		panic(err)
-	}
+	http.SupplierService.Delete(c.Context(), c.Params("id"))
+
 	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "delete supplier successfully", nil))
 }

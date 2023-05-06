@@ -46,7 +46,7 @@ func (repository *SupplierRepositoryCommandImpl) Create(ctx context.Context, tx 
 	SQL = "INSERT INTO suppliers(id, name, email, phone, address, created_at, updated_at) VALUES(?, ?, ?, ?, ?, ?, ?)"
 	_, errInsert := tx.ExecContext(ctx, SQL, supplier.ID, supplier.Name, supplier.Email, supplier.Phone, supplier.Address, supplier.CreatedAt, supplier.UpdatedAt)
 	if errInsert != nil {
-		panic(errInsert)
+		return nil, errInsert
 	}
 	return supplier, nil
 }
@@ -77,7 +77,7 @@ func (repository *SupplierRepositoryCommandImpl) Update(ctx context.Context, tx 
 	SQL = "UPDATE suppliers SET name = ?, email = ?, phone = ?, address = ?, updated_at = ? WHERE id = ?"
 	_, errUpdate := tx.ExecContext(ctx, SQL, supplier.Name, supplier.Email, supplier.Phone, supplier.Address, supplier.UpdatedAt, supplier.ID)
 	if errUpdate != nil {
-		panic(errUpdate)
+		return nil, errUpdate
 	}
 	return supplier, nil
 }

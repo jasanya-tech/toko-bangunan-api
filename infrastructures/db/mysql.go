@@ -15,7 +15,7 @@ type MysqlImpl struct {
 }
 
 func NewMysqlConnection() *sql.DB {
-	log.Info().Msg("Initialize Mysql Connection")
+	// log.Info().Msg("Initialize Mysql Connection")
 
 	dbHost := config.Get().DB.Mysql.Host
 	dbPort := config.Get().DB.Mysql.Port
@@ -28,6 +28,6 @@ func NewMysqlConnection() *sql.DB {
 	if err != nil {
 		log.Err(err).Msgf("error to load database %s", err)
 	}
-	log.Info().Str("name", dbPass).Msg("success connect to db")
+	log.Info().Str("name", dbName).Msg("success connect to db")
 	return db
 }
