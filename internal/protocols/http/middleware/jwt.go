@@ -32,7 +32,7 @@ func NewAuthMiddlewareImpl(userService userservice.UserService) JwtMiddleware {
 func (t *JwtMiddlewareImpl) JwtVerifyToken(c *fiber.Ctx) error {
 	jwtToken := strings.Replace(c.Get("Authorization"), fmt.Sprintf("%s ", "Bearer"), "", 1)
 	if jwtToken == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "youre not loggined", nil))
+		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "youre not loggined", nil, nil))
 	}
 	// _, err := t.UserService.FindTokenByUserId(c.Context(), c.Get("id"))
 	// if err != nil {
@@ -60,23 +60,23 @@ func (t *JwtMiddlewareImpl) JwtVerifyToken(c *fiber.Ctx) error {
 		}
 	})
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, err.Error(), nil))
+		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, err.Error(), nil, nil))
 	}
 
 	if !token.Valid {
 		log.Err(err).Msg("token not valid or err")
-		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "token is not valid", nil))
+		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "token is not valid", nil, nil))
 	}
 	claims, _ := token.Claims.(jwt.MapClaims)
 	id := claims["id"].(string)
 	if id == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "token is not valid", nil))
+		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "token is not valid", nil, nil))
 	}
 
 	exp := claims["exp"].(float64)
 	rawExp := int64(exp)
 	if rawExp < time.Now().Unix() {
-		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "token has expired", nil))
+		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "token has expired", nil, nil))
 	}
 
 	return c.Next()
@@ -85,7 +85,7 @@ func (t *JwtMiddlewareImpl) JwtVerifyToken(c *fiber.Ctx) error {
 func (middleware *JwtMiddlewareImpl) JwtVerifyRefreshToken(c *fiber.Ctx) error {
 	jwtToken := strings.Replace(c.Get("Authorization"), fmt.Sprintf("%s ", "Bearer"), "", 1)
 	if jwtToken == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "youre not loggined", nil))
+		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "youre not loggined", nil, nil))
 	}
 
 	decodedPublicKey, err := base64.StdEncoding.DecodeString(config.Get().Auth.JwtToken.RefreshToken.PublicKey)
@@ -109,24 +109,24 @@ func (middleware *JwtMiddlewareImpl) JwtVerifyRefreshToken(c *fiber.Ctx) error {
 		}
 	})
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, err.Error(), nil))
+		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, err.Error(), nil, nil))
 	}
 
 	if err != nil || !token.Valid {
 		log.Err(err).Msg("token not valid or err")
-		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "Refresh token is not valid", nil))
+		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "Refresh token is not valid", nil, nil))
 	}
 
 	claims, _ := token.Claims.(jwt.MapClaims)
 	id := claims["id"].(string)
 	if id == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "Refresh token is not valid", nil))
+		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "Refresh token is not valid", nil, nil))
 	}
 
 	exp := claims["exp"].(float64)
 	rawExp := int64(exp)
 	if rawExp < time.Now().Unix() {
-		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "Refresh token has expired", nil))
+		return c.Status(fiber.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", 401, "Refresh token has expired", nil, nil))
 	}
 
 	// userFind, err := middleware.UserService.FindById(c.Context(), claims["id"].(string))

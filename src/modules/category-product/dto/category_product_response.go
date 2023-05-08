@@ -1,6 +1,8 @@
 package dto
 
-import "toko-bangunan/src/modules/category-product/entities"
+import (
+	categoryproductentity "toko-bangunan/src/modules/category-product/entities"
+)
 
 type CategoryProductRes struct {
 	ID        string `json:"id"`
@@ -9,7 +11,7 @@ type CategoryProductRes struct {
 	UpdatedAt int64  `json:"updated_at"`
 }
 
-func EntitiesToResponse(entity entities.CategoryProduct) CategoryProductRes {
+func EntitiesToResponse(entity categoryproductentity.CategoryProduct) CategoryProductRes {
 	return CategoryProductRes{
 		ID:        entity.ID,
 		Name:      entity.Name,

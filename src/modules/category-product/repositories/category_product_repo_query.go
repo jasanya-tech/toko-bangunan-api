@@ -9,15 +9,23 @@ import (
 )
 
 type CategoryProductRepositoryQuery interface {
-	FindALL(ctx context.Context, db *sql.DB) *[]entities.CategoryProduct
+	FindALL(ctx context.Context, db *sql.DB, where string) *[]entities.CategoryProduct
 	FindById(ctx context.Context, db *sql.DB, id string) (*entities.CategoryProduct, error)
 }
 
 type CategoryProductRepositoryQueryImpl struct{}
 
-func (repository *CategoryProductRepositoryQueryImpl) FindALL(ctx context.Context, db *sql.DB) *[]entities.CategoryProduct {
-	SQL := "SELECT id, name, created_at, updated_at FROM product_categories"
-	rows, err := db.QueryContext(ctx, SQL)
+func (repository *CategoryProductRepositoryQueryImpl) FindALL(ctx context.Context, db *sql.DB, where string) *[]entities.CategoryProduct {
+	var rows *sql.Rows
+	var err error
+	if where != "" {
+		SQL := "SELECT id, name, created_at, updated_at FROM product_categories " + where
+		// panic(SQL)
+		rows, err = db.QueryContext(ctx, SQL)
+	} else {
+		SQL := "SELECT id, name, created_at, updated_at FROM product_categories"
+		rows, err = db.QueryContext(ctx, SQL)
+	}
 	if err != nil {
 		panic(err)
 	}

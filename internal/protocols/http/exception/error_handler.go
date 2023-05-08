@@ -20,17 +20,17 @@ func ErrorHandler(ctx *fiber.Ctx, err error) error {
 	forbiddenException, okForbidden := err.(Forbidden)
 
 	if okValidasi {
-		return ctx.Status(http.StatusBadRequest).JSON(response.NewResponse("BAD REQUEST", http.StatusBadRequest, message.ValidationMessage(validationException), nil))
+		return ctx.Status(http.StatusBadRequest).JSON(response.NewResponse("BAD REQUEST", http.StatusBadRequest, message.ValidationMessage(validationException), nil, nil))
 	} else if okBadRequest {
-		return ctx.Status(http.StatusBadRequest).JSON(response.NewResponse("BAD REQUEST", http.StatusBadRequest, badRequestException.Message, nil))
+		return ctx.Status(http.StatusBadRequest).JSON(response.NewResponse("BAD REQUEST", http.StatusBadRequest, badRequestException.Message, nil, nil))
 	} else if okNotFound {
-		return ctx.Status(http.StatusNotFound).JSON(response.NewResponse("NOT FOUND", http.StatusNotFound, notFoundErrorException.Message, nil))
+		return ctx.Status(http.StatusNotFound).JSON(response.NewResponse("NOT FOUND", http.StatusNotFound, notFoundErrorException.Message, nil, nil))
 	} else if okUnauthorize {
-		return ctx.Status(http.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", http.StatusUnauthorized, UnauthorizeException.Message, nil))
+		return ctx.Status(http.StatusUnauthorized).JSON(response.NewResponse("UNAUTHORIZED", http.StatusUnauthorized, UnauthorizeException.Message, nil, nil))
 	} else if okUnprocessableEntity {
-		return ctx.Status(http.StatusUnprocessableEntity).JSON(response.NewResponse("UNPROCESSABLE ENTITY", http.StatusUnprocessableEntity, UnprocessableEntityException.Message, nil))
+		return ctx.Status(http.StatusUnprocessableEntity).JSON(response.NewResponse("UNPROCESSABLE ENTITY", http.StatusUnprocessableEntity, UnprocessableEntityException.Message, nil, nil))
 	} else if okForbidden {
-		return ctx.Status(http.StatusForbidden).JSON(response.NewResponse("FORBIDDEN", http.StatusForbidden, forbiddenException.Message, nil))
+		return ctx.Status(http.StatusForbidden).JSON(response.NewResponse("FORBIDDEN", http.StatusForbidden, forbiddenException.Message, nil, nil))
 	} else {
 		code := 500
 
@@ -45,6 +45,6 @@ func ErrorHandler(ctx *fiber.Ctx, err error) error {
 			status = "CLIENT ERROR"
 		}
 		ctx.Set(fiber.HeaderContentType, fiber.MIMETextPlainCharsetUTF8)
-		return ctx.Status(code).JSON(response.NewResponse(status, code, err.Error(), nil))
+		return ctx.Status(code).JSON(response.NewResponse(status, code, err.Error(), nil, nil))
 	}
 }

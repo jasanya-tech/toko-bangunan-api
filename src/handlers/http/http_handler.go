@@ -70,7 +70,7 @@ func (h *HttpHandlerImpl) Router(router *fiber.App) {
 	router.Static("/public", "./public")
 
 	api.Route("/category-product", func(r fiber.Router) {
-		r.Get("/", middlewareJwt.JwtVerifyToken, handler.FindAllCategoryProduct)
+		r.Get("/", handler.FindAllCategoryProduct)
 		r.Get("/:id/detail", handler.FindByIdCategoryProduct)
 		r.Post("/create", handler.CreateCategoryProduct)
 		r.Put("/:id/update", handler.UpdateCategoryProduct)

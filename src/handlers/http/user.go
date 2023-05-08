@@ -27,7 +27,7 @@ func (http *HttpHandlerImpl) CreateUser(c *fiber.Ctx) error {
 		panic(err)
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(response.NewResponse("ok", 201, "created user successfully", userService))
+	return c.Status(fiber.StatusCreated).JSON(response.NewResponse("ok", 201, "created user successfully", userService, nil))
 }
 
 func (http *HttpHandlerImpl) FindByIdUser(c *fiber.Ctx) error {
@@ -35,7 +35,7 @@ func (http *HttpHandlerImpl) FindByIdUser(c *fiber.Ctx) error {
 	if err != nil {
 		panic(err)
 	}
-	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", 200, "data user", user))
+	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", 200, "data user", user, nil))
 }
 
 func (http *HttpHandlerImpl) UserLogin(c *fiber.Ctx) error {
@@ -50,7 +50,7 @@ func (http *HttpHandlerImpl) UserLogin(c *fiber.Ctx) error {
 		panic(err)
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(response.NewResponse("ok", 201, "created user successfully", userLogin))
+	return c.Status(fiber.StatusCreated).JSON(response.NewResponse("ok", 201, "created user successfully", userLogin, nil))
 }
 
 func (http *HttpHandlerImpl) UserRefreshToken(c *fiber.Ctx) error {
@@ -69,7 +69,7 @@ func (http *HttpHandlerImpl) UserRefreshToken(c *fiber.Ctx) error {
 		panic(err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "create token successfully", tokenNew))
+	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "create token successfully", tokenNew, nil))
 }
 
 func (http *HttpHandlerImpl) UserLogout(c *fiber.Ctx) error {
@@ -80,5 +80,5 @@ func (http *HttpHandlerImpl) UserLogout(c *fiber.Ctx) error {
 	}
 
 	http.UserService.DeleteToken(c.Context(), id)
-	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "logout successfully", nil))
+	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "logout successfully", nil, nil))
 }

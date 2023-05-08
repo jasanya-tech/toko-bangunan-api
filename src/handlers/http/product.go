@@ -12,13 +12,13 @@ import (
 
 func (http *HttpHandlerImpl) FindAllProduct(c *fiber.Ctx) error {
 	products := http.ProductService.FindALL(c.Context())
-	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "list data product", products))
+	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "list data product", products, nil))
 }
 
 func (http *HttpHandlerImpl) FindByIdProduct(c *fiber.Ctx) error {
 	product := http.ProductService.FindById(c.Context(), c.Params("id"))
 
-	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "data product", product))
+	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "data product", product, nil))
 }
 
 func (http *HttpHandlerImpl) CreateProduct(c *fiber.Ctx) error {
@@ -43,7 +43,7 @@ func (http *HttpHandlerImpl) CreateProduct(c *fiber.Ctx) error {
 		}
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(response.NewResponse("ok", fiber.StatusCreated, "created product successfully", productService))
+	return c.Status(fiber.StatusCreated).JSON(response.NewResponse("ok", fiber.StatusCreated, "created product successfully", productService, nil))
 }
 
 func (http *HttpHandlerImpl) UpdateProduct(c *fiber.Ctx) error {
@@ -63,11 +63,11 @@ func (http *HttpHandlerImpl) UpdateProduct(c *fiber.Ctx) error {
 		}
 	}
 
-	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "update product successfully", productService))
+	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "update product successfully", productService, nil))
 }
 
 func (http *HttpHandlerImpl) DeleteProduct(c *fiber.Ctx) error {
 	http.ProductService.Delete(c.Context(), c.Params("id"))
 
-	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "delete product successfully", nil))
+	return c.Status(fiber.StatusOK).JSON(response.NewResponse("ok", fiber.StatusOK, "delete product successfully", nil, nil))
 }

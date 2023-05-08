@@ -3,9 +3,12 @@ package services
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"toko-bangunan/infrastructures/db/transaction"
+	"toko-bangunan/internal/helpers/pagination"
+	paginateentity "toko-bangunan/internal/helpers/pagination/entities"
 	"toko-bangunan/internal/utils/format"
 	"toko-bangunan/src/modules/category-product/dto"
 	"toko-bangunan/src/modules/category-product/entities"
@@ -15,7 +18,7 @@ import (
 )
 
 type CategoryProductService interface {
-	FindALL(ctx context.Context) *[]dto.CategoryProductRes
+	FindALL(ctx context.Context, paginate paginateentity.Pagination) ([]dto.CategoryProductRes, paginateentity.PaginationInfo)
 	FindById(ctx context.Context, id string) *dto.CategoryProductRes
 	Create(ctx context.Context, request dto.CreateCategoryProductReq) *dto.CategoryProductRes
 	Update(ctx context.Context, request dto.UpdateCategoryProductReq, id string) *dto.CategoryProductRes
@@ -32,15 +35,48 @@ func NewCategoryProductService(categortProductRepo repositories.Repositories, db
 	return &CategoryProductServiceImpl{CategoryProductRepo: categortProductRepo, DB: db, Validate: validate}
 }
 
-func (service *CategoryProductServiceImpl) FindALL(ctx context.Context) *[]dto.CategoryProductRes {
-	categoryProducts := service.CategoryProductRepo.FindALL(ctx, service.DB)
-	var categoryProductResponses []dto.CategoryProductRes
+func (service *CategoryProductServiceImpl) FindALL(ctx context.Context, paginate paginateentity.Pagination) ([]dto.CategoryProductRes, paginateentity.PaginationInfo) {
+	var whereStr string
+	isFirstPage := paginate.Cursor == ""
+	pointNext := false
 
+	if paginate.Cursor != "" {
+		decodedCursor, _ := pagination.DecodedCursor(paginate.Cursor)
+		pointNext = decodedCursor["point_next"] == true
+		operation, order := pagination.GetPaginationOperator(pointNext, paginate.Order)
+		createdAt := int64(decodedCursor["created_at"].(float64))
+		if order != "" {
+			paginate.Order = order
+		}
+		// panic(createdAt)
+		whereStr = fmt.Sprintf("WHERE created_at %s %d ORDER BY created_at %s LIMIT %d", operation, createdAt, paginate.Order, paginate.Page+1)
+	} else {
+		whereStr = fmt.Sprintf("ORDER BY created_at %s LIMIT %d", paginate.Order, paginate.Page+1)
+	}
+
+	categoryProducts := service.CategoryProductRepo.FindALL(ctx, service.DB, whereStr)
+	var categoryProductResponses []dto.CategoryProductRes
+	var paginateCalculateEntities []paginateentity.PaginationCalculate
 	for _, categoryProduct := range *categoryProducts {
 		categoryProductResponse := dto.EntitiesToResponse(categoryProduct)
 		categoryProductResponses = append(categoryProductResponses, categoryProductResponse)
+
+		paginateCalculateEntities = append(paginateCalculateEntities, paginateentity.PaginationCalculate{
+			ID: categoryProduct.ID, CreatedAt: categoryProduct.CreatedAt,
+		})
 	}
-	return &categoryProductResponses
+
+	hasPagination := len(categoryProductResponses) > paginate.Page
+	if hasPagination {
+		categoryProductResponses = categoryProductResponses[:paginate.Page]
+	}
+
+	if !isFirstPage && !pointNext {
+		categoryProductResponses = pagination.Reverse(categoryProductResponses)
+	}
+
+	pageInfo := pagination.CalculatePagination(isFirstPage, hasPagination, paginate.Page, paginateCalculateEntities, pointNext)
+	return categoryProductResponses, pageInfo
 }
 
 func (service *CategoryProductServiceImpl) FindById(ctx context.Context, id string) *dto.CategoryProductRes {
